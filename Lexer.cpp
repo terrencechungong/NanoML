@@ -2,7 +2,7 @@
 #include <regex>
 #include <string>
 #include "TokenTypes.h"
-
+#include "Utils.h"
 
 using std::string;
 using std::vector;
@@ -15,8 +15,8 @@ string custom_trim(const string& input) {
     return input.substr(1, length - 2);
 }
 
-vector<Token> tokenize_helper(const string& input, const string& match, vector<Token>& tokens, int last_index) {
-    if (match.length() > last_index) {
+vector<Token> tokenize_helper(const string& input, const string& match, vector<Token>& tokens) {
+    if (match.length() >= input.length()) {
         return tokens;
     } 
     string new_input = input.substr(match.length(), input.length());
@@ -35,10 +35,15 @@ vector<Token> tokenize(const string& input, vector<Token>& tokens) {
 
     std::smatch match;
     if (std::regex_search(input_begin, input_end, match, re_bool)) {
-        std::cout << "Boolean: " << match.str() << std::endl;
-        // func(input.substr(match.str().length(), last_index));
-    } else if (std::regex_search(input_begin, input_end, match, re_int)) {
-        std::cout << "Integer: " << match.str() << std::endl;
+        string token = match.str();
+        int boolValue = stringToBool(token);
+        tokens.push_back(tok(Tok_Bool, boolValue));
+        return tokenize_helper(input, token, tokens);
+    } else if (std::regex_search(input_begin, input_end, match, re_int)) { // handle positive and negative
+        string token = match.str();
+        int intValue = std::stoi(token);
+        tokens.push_back(tok(Tok_Int, intValue));
+        return tokenize_helper(input, token, tokens);
     } else if (std::regex_search(input_begin, input_end, match, re_string)) {
         std::cout << "String: " << match.str() << std::endl;
     } else if (std::regex_search(input_begin, input_end, match, re_id)) {
@@ -46,8 +51,6 @@ vector<Token> tokenize(const string& input, vector<Token>& tokens) {
     } else {
         std::cout << "No match found" << std::endl;
     }
-
-
 
 }
 
